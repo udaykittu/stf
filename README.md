@@ -1,5 +1,32 @@
 <img src="res/common/logo/exports/STF-128.png?raw=true" style="width:100px;height:100px;" alt="STF">
 
+# Warning
+This repository (along with other ones in [OpenSTF](https://github.com/openstf) organisation) is no longer maintained.
+Active development has been moved to [DeviceFarmer](https://github.com/DeviceFarmer) organisation. Version **3.4.2** is the last release of OpenSTF and first one of DeviceFarmer.
+
+### FAQ
+
+#### What exactly has changed?
+
+1. Organisation on GitHub to [DeviceFarmer](https://github.com/DeviceFarmer)
+1. Organisation on DockerHub to [devicefarmer](https://hub.docker.com/orgs/devicefarmer)
+1. Package coordinates on npmjs are now under [@devicefarmer scope](https://www.npmjs.com/package/@devicefarmer/stf)
+
+#### How to migrate?
+
+It depends on how you are using STF. One or more of those changes may be needed:
+
+* change Docker image coordinates eg. `docker pull openstf/stf` to `docker pull devicefarmer/stf`
+* change npmjs package coordinates eg. `npm install -g stf` to `npm install -g @devicefarmer/stf`
+
+#### Will version OpenSTF 3.4.2 be published to npmjs?
+
+No. Exceptionally, on npmjs the last OpenSTF version is 3.4.1.
+
+#### What about sponsorship?
+
+DeviceFarmer team have no access to OpenSTF donations collected using [Open Collective](https://opencollective.com/openstf). At the time of writng DeviceFarmer do not collect any donations.
+
 [![Build Status](https://travis-ci.org/openstf/stf.svg?branch=master)](https://travis-ci.org/openstf/stf)
 [![Docker Pulls](https://img.shields.io/docker/pulls/openstf/stf.svg)](https://hub.docker.com/r/openstf/stf/)
 [![NPM version](https://img.shields.io/npm/v/stf.svg)](https://www.npmjs.com/package/stf)
