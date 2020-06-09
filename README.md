@@ -25,7 +25,7 @@ No. Exceptionally, on npmjs the last OpenSTF version is 3.4.1.
 
 #### What about sponsorship?
 
-DeviceFarmer team have no access to OpenSTF donations collected using [Open Collective](https://opencollective.com/openstf). At the time of writng DeviceFarmer do not collect any donations.
+DeviceFarmer team have no access to OpenSTF donations collected using [Open Collective](https://opencollective.com/openstf). At the time of writing DeviceFarmer do not collect any donations.
 
 [![Build Status](https://travis-ci.org/openstf/stf.svg?branch=master)](https://travis-ci.org/openstf/stf)
 [![Docker Pulls](https://img.shields.io/docker/pulls/openstf/stf.svg)](https://hub.docker.com/r/openstf/stf/)
