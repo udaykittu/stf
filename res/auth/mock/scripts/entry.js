@@ -2,11 +2,12 @@ require.ensure([], function(require) {
   require('nine-bootstrap')
 
   require('angular')
-  require('angular-route')
+  //require('angular-route')
+  var ngRoute = require('angular-route').ngRoute
   require('angular-touch')
 
   angular.module('app', [
-    'ngRoute',
+    ngRoute,
     'ngTouch',
     require('gettext').name,
     require('./signin').name

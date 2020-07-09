@@ -1,67 +1,77 @@
-FROM ubuntu:16.04
+FROM ubuntu:18.04 AS nodebase
 
-# Sneak the stf executable into $PATH.
-ENV PATH /app/bin:$PATH
-
-# Work in app dir by default.
-WORKDIR /app
-
-# Export default app port, not enough for all processes but it should do
-# for now.
-EXPOSE 3000
-
-# Install app requirements. Trying to optimize push speed for dependant apps
-# by reducing layers as much as possible. Note that one of the final steps
-# installs development files for node-gyp so that npm install won't have to
-# wait for them on the first native module installation.
+# Install base packages
 RUN export DEBIAN_FRONTEND=noninteractive && \
-    useradd --system \
-      --create-home \
-      --shell /usr/sbin/nologin \
-      stf-build && \
-    useradd --system \
-      --create-home \
-      --shell /usr/sbin/nologin \
-      stf && \
-    sed -i'' 's@http://archive.ubuntu.com/ubuntu/@mirror://mirrors.ubuntu.com/mirrors.txt@' /etc/apt/sources.list && \
     apt-get update && \
-    apt-get -y install wget python build-essential && \
-    cd /tmp && \
-    wget --progress=dot:mega \
-      https://nodejs.org/dist/v8.9.3/node-v8.9.3-linux-x64.tar.xz && \
-    tar -xJf node-v*.tar.xz --strip-components 1 -C /usr/local && \
-    rm node-v*.tar.xz && \
-    su stf-build -s /bin/bash -c '/usr/local/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js install' && \
-    apt-get -y install libzmq3-dev libprotobuf-dev git graphicsmagick yasm && \
-    apt-get clean && \
-    rm -rf /var/cache/apt/* /var/lib/apt/lists/*
+    apt-get -y --no-install-recommends install curl wget libxml-bare-perl libzmq3-dev libprotobuf-dev graphicsmagick ca-certificates
 
-# Copy app source.
-COPY . /tmp/build/
+# Install node
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    curl -sL -o /tmp/install_node.sh https://deb.nodesource.com/setup_8.x && \
+    /bin/bash /tmp/install_node.sh && \
+    apt install --no-install-recommends -y nodejs
 
-# Give permissions to our build user.
-RUN mkdir -p /app && \
-    chown -R stf-build:stf-build /tmp/build /app
+FROM nodebase as builder
 
-# Switch over to the build user.
-USER stf-build
+# Install additional packages for building things
+RUN export DEBIAN_FRONTEND=noninteractive && \
+    apt-get -y --no-install-recommends install build-essential git yasm jq python vim
 
-# Run the build.
+# Install node-gyp ahead of time to avoid installation on native module install
+# RUN /bin/bash -c '/usr/lib/node_modules/npm/node_modules/node-gyp/bin/node-gyp.js install'
+
+# Install just the package dependencies before copying in the full source
+RUN mkdir -p /tmp/build/res/build
+COPY ./package*.json /tmp/build/
 RUN set -x && \
     cd /tmp/build && \
     export PATH=$PWD/node_modules/.bin:$PATH && \
     npm install --loglevel http && \
-    npm pack && \
-    tar xzf devicefarmer-stf-*.tgz --strip-components 1 -C /app && \
-    bower cache clean && \
+    curl -sf https://gobinaries.com/tj/node-prune | sh
+
+# Removed this from package.json -> "prepublish": "bower install && not-in-install && gulp build || in-install"
+
+# Install bower dependencies
+WORKDIR /tmp/build
+COPY ./bower.json /tmp/build/
+RUN echo '{ "allow_root": true }' > /root/.bowerrc && \
+    ./node_modules/.bin/bower install
+
+# Copy the rest of the app source in
+COPY . /tmp/build/
+
+# Package and cleanup
+RUN ./node_modules/.bin/gulp build && \
     npm prune --production && \
-    mv node_modules /app && \
-    rm -rf ~/.node-gyp && \
-    cd /app && \
-    rm -rf /tmp/*
+    node-prune && \
+    npm pack && \
+    mv devicefarmer-stf-$(jq .version package.json -j).tgz stf.tgz
 
-# Switch to the app user.
-USER stf
+FROM nodebase as runtime
 
+EXPOSE 3000
+
+# Setup user
+RUN useradd --system --create-home --shell /usr/sbin/nologin stf
+RUN mkdir -p /app && chown stf:stf /app
+#USER stf
+
+WORKDIR /app
+
+COPY ./webpack.config.js /app/
+COPY --from=builder --chown=stf:stf /tmp/build/stf.tgz /tmp/stf.tgz
+COPY --from=builder --chown=stf:stf /tmp/build/node_modules /app/node_modules
+COPY --from=builder --chown=stf:stf /tmp/build/res/build /app/res/build
+RUN tar xf /tmp/stf.tgz --strip-components 1 -C /app && \
+    chown stf:stf /app/* -R && \
+    rm /tmp/stf.tgz && \
+    npm prune --production
+    
+#USER root
+#RUN apt-get -y --no-install-recommends install ncdu
+
+# Add stf executable dir into $PATH
+ENV PATH /app/bin:$PATH
+    
 # Show help by default.
 CMD stf --help

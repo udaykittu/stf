@@ -1,7 +1,7 @@
 require('./cpu.css')
 
 module.exports = angular.module('stf.cpu', [
-  require('epoch').name
+  require('epoch-charting').name
 ])
   .run(['$templateCache', function($templateCache) {
     $templateCache.put('control-panes/performance/cpu/cpu.pug',
