@@ -11,7 +11,9 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
     /bin/bash /tmp/install_node.sh && \
     apt install --no-install-recommends -y nodejs
 
-FROM nodebase as builder
+RUN useradd --system --create-home --shell /usr/sbin/nologin stf
+
+FROM nodebase as with_packages
 
 # Install additional packages for building things
 RUN export DEBIAN_FRONTEND=noninteractive && \
@@ -23,13 +25,15 @@ RUN export DEBIAN_FRONTEND=noninteractive && \
 # Install just the package dependencies before copying in the full source
 RUN mkdir -p /tmp/build/res/build
 COPY ./package*.json /tmp/build/
+WORKDIR /tmp/build
 RUN set -x && \
-    cd /tmp/build && \
     export PATH=$PWD/node_modules/.bin:$PATH && \
     npm install --loglevel http && \
     curl -sf https://gobinaries.com/tj/node-prune | sh
 
-# Removed this from package.json -> "prepublish": "bower install && not-in-install && gulp build || in-install"
+# ********* FRONTEND **********
+    
+FROM with_packages as frontend
 
 # Install bower dependencies
 WORKDIR /tmp/build
@@ -37,36 +41,62 @@ COPY ./bower.json /tmp/build/
 RUN echo '{ "allow_root": true }' > /root/.bowerrc && \
     ./node_modules/.bin/bower install
 
-# Copy the rest of the app source in
-COPY . /tmp/build/
+# Copy the app ( res ) in
+COPY ./bower.json /tmp/build/
+COPY ./gulpfile.js /tmp/build/
+COPY ./webpack.config.js /tmp/build/
+COPY ./res /tmp/build/res
+COPY ./lib/util /tmp/build/lib/util
+
+RUN ./node_modules/.bin/gulp build
+
+# ********* BACKEND **********
+
+FROM with_packages as backend
+
+COPY ./lib /tmp/build/lib
 
 # Package and cleanup
-RUN ./node_modules/.bin/gulp build && \
-    npm prune --production && \
-    node-prune && \
-    npm pack && \
+WORKDIR /tmp/build
+RUN npm pack 2>&1 | grep -v "npm notice [1-9]" && \
     mv devicefarmer-stf-$(jq .version package.json -j).tgz stf.tgz
+
+#npm prune --production && \
+#    node-prune && \
+
+FROM alpine as app
+
+RUN mkdir -p /app
+COPY --from=backend /tmp/build/stf.tgz /tmp/stf.tgz
+RUN tar xf /tmp/stf.tgz --strip-components 1 -C /app
+
+# ********* RUNTIME **********
 
 FROM nodebase as runtime
 
 EXPOSE 3000
 
 # Setup user
-RUN useradd --system --create-home --shell /usr/sbin/nologin stf
 RUN mkdir -p /app && chown stf:stf /app
-#USER stf
 
 WORKDIR /app
 
-COPY ./webpack.config.js /app/
-COPY --from=builder --chown=stf:stf /tmp/build/stf.tgz /tmp/stf.tgz
-COPY --from=builder --chown=stf:stf /tmp/build/node_modules /app/node_modules
-COPY --from=builder --chown=stf:stf /tmp/build/res/build /app/res/build
-RUN tar xf /tmp/stf.tgz --strip-components 1 -C /app && \
-    chown stf:stf /app/* -R && \
-    rm /tmp/stf.tgz && \
-    npm prune --production
-    
+# Copy in node_modules and prune them
+COPY --from=with_packages --chown=stf:stf /tmp/build/node_modules /app/node_modules
+COPY --from=with_packages --chown=stf:stf /tmp/build/package.json /app/package.json
+RUN npm prune --production
+
+# Copy in resources needed by backend
+COPY --chown=stf:stf ./res/common /app/res/common
+COPY --chown=stf:stf ./res/app/views /app/res/app/views
+COPY --chown=stf:stf ./res/auth/mock/views /app/res/auth/mock/views
+
+# Copy in the backend
+COPY --from=app --chown=stf:stf /app /app
+
+# Copy in the frontend
+COPY --from=frontend --chown=stf:stf /tmp/build/res/build /app/res/build
+ 
 #USER root
 #RUN apt-get -y --no-install-recommends install ncdu
 

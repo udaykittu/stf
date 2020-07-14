@@ -2,6 +2,8 @@
 * Copyright © 2019 contains code contributed by Orange SA, authors: Denis Barbaron - Licensed under the Apache license 2.0
 **/
 
+import * as d3 from "d3";
+
 require.ensure([], function(require) {
   require('angular')
   require('angular-route')

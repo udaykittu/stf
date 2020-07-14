@@ -9,7 +9,7 @@ var path = require('path')
 var log = require('./lib/util/logger').createLogger('webpack:config')
 
 module.exports = {
-  mode: 'production',
+  mode: 'development',
   context: __dirname,
   cache: true,
   entry: {
@@ -71,13 +71,31 @@ module.exports = {
       , {test: /\.eot/, loader: 'url-loader', options: { limit: 1, mimetype: 'vnd.ms-fontobject' } }
       , {test: /\.pug$/, loader: 'template-html-loader?engine=jade'}
       , {test: /\.html$/, loader: 'html-loader'}
-      , {test: /angular\.js$/, loader: 'exports-loader?exports=angular'}
-      , {test: /angular-cookies\.js$/, loader: 'imports-loader?angular'}
-      , {test: /angular-route\.js$/, loader: 'imports-loader?angular'}
-      , {test: /angular-touch\.js$/, loader: 'imports-loader?angular'}
-      , {test: /angular-animate\.js$/, loader: 'imports-loader?angular'}
-      , {test: /angular-growl\.js$/, loader: 'imports-loader?angular'}
+      , {test: /mousetrap\.js$/, loader: 'exports-loader?Mousetrap'}
+      , {test: /\/angular\.js$/, loader: 'exports-loader?angular'}
+      , {test: /angular-cookies\.js$/, loader: 'imports-loader?angular=angular'}
+      , {test: /angular-route\.js$/, loader: 'imports-loader?angular=angular'}
+      , {test: /angular-touch\.js$/, loader: 'imports-loader?angular=angular'}
+      , {test: /angular-animate\.js$/, loader: 'imports-loader?angular=angular'}
+      , {test: /angular-growl\.js$/, loader: 'imports-loader?angular=angular'}
+      , {test: /angular-gettext\.js$/, loader: 'imports-loader?angular=angular'}
       , {test: /dialogs\.js$/, loader: 'script-loader'}
+      , {test: /hotkeys\.js$/, loader: 'imports-loader?Mousetrap=Mousetrap'}
+      , {test: /epoch\.js$/, loader: 'imports-loader?d3=d3'}
+      //, {test: /\.ts$/, loader: 'ng-annotate-loader?ngAnnotate=ng-annotate-patched!ts-loader`
+      , {
+        test: /\.js$/,
+        use: {
+          loader: 'ng-annotate-loader',
+          options: {
+            ngAnnotate: 'ng-annotate-patched',
+            es6: true,
+            explicityOnly: false
+          }
+        },
+        exclude: /node_modules/
+      }
+        
     ],
     // TODO: enable when its sane
     // preLoaders: [
