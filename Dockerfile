@@ -38,13 +38,15 @@ FROM with_packages as frontend
 # Install bower dependencies
 WORKDIR /tmp/build
 COPY ./bower.json /tmp/build/
-RUN echo '{ "allow_root": true }' > /root/.bowerrc && \
+COPY ./.bowerrc /tmp/build/
+RUN mkdir bower_modules && \
     ./node_modules/.bin/bower install
 
 # Copy the app ( res ) in
 COPY ./bower.json /tmp/build/
 COPY ./gulpfile.js /tmp/build/
 COPY ./webpack.config.js /tmp/build/
+COPY ./.babelrc.json /tmp/build/
 COPY ./res /tmp/build/res
 COPY ./lib/util /tmp/build/lib/util
 

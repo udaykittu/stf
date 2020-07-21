@@ -8,6 +8,16 @@ var pathutil = require('./lib/util/pathutil')
 var path = require('path')
 var log = require('./lib/util/logger').createLogger('webpack:config')
 
+require("@babel/core").transform("code", {
+  "presets": [
+    "@babel/preset-env"
+  ],
+  "plugins": [
+    "@babel/plugin-proposal-class-properties"
+  ]
+});
+require("@babel/register");
+
 module.exports = {
   mode: 'development',
   context: __dirname,
@@ -31,12 +41,12 @@ module.exports = {
   resolve: {
     modules: [
       "node_modules", 
-      //path.resolve(__dirname, "bower_components"),  // works
-      '/tmp/build/bower_components',
-      //path.resolve(__dirname, "res/web_modules" ), // works
-      '/tmp/build/res/web_modules',
-      //path.resolve(__dirname, "res/app/components" )// works
-      '/tmp/build/res/app/components'
+      //path.resolve(__dirname, "bower_modules"),  // works
+      '/tmp/build/bower_modules',
+      path.join(__dirname, "res/web_modules" ), // works
+      //'/tmp/build/res/web_modules',
+      path.resolve(__dirname, "res/app/components" )// works
+      //'/tmp/build/res/app/components'
     ],
     /*root: [
       pathutil.resource('app/components')
@@ -52,26 +62,38 @@ module.exports = {
       'socket.io': 'socket.io-client',
       stats: 'stats.js/src/Stats.js',
       'underscore.string': 'underscore.string/index',
-      'ngRoute': 'angular-route'
+      'ngRoute': 'angular-route',
+      'spin.js': '/tmp/build/bower_modules/spin.js/spin.ts',
+      'ng-epoch': '/tmp/build/bower_modules/ng-epoch/ng-epoch.js',
+      'd3': '/tmp/build/bower_modules/d3/d3.min.js',
+      'oboe': '/tmp/build/bower_modules/oboe/dist/oboe-browser.js'
     }
   },
   module: {
     rules: [
-      {test: /\.css$/, loader: 'css-loader'},
-      {test: /\.scss$/, loader: 'css-loader!sass-loader'}
-      , {test: /\.less$/, loader: 'css-loader!less-loader'}
+      {test: /\.css$/, loader: 'style-loader!css-loader'},
+      {
+        test: /\.(sass|scss)$/,
+        use: ['style-loader','css-loader','sass-loader']
+      },
+      {test: /\.less$/, loader: 'style-loader!css-loader!less-loader'},
       //, {test: /\.json$/, loader: 'json-loader'}
-      , {test: /\.jpg$/, loader: 'url-loader', options: { limit: 1000, mimetype: 'image/jpeg' } }
-      , {test: /\.png$/, loader: 'url-loader', options: { limit: 1000, mimetype: 'image/png' } }
-      , {test: /\.gif$/, loader: 'url-loader', options: { limit: 1000, mimetype: 'image/gif' } }
-      , {test: /\.svg/, loader: 'url-loader', options: { limit: 1, mimetype: 'image/svg+xml' } }
-      , {test: /\.woff/, loader: 'url-loader', options: { limit: 1, mimetype: 'application/font-woff' } }
-      , {test: /\.otf/, loader: 'url-loader', options: { limit: 1, mimetype: 'application/font-woff' } }
-      , {test: /\.ttf/, loader: 'url-loader', options: { limit: 1, mimetype: 'application/font-woff' } }
-      , {test: /\.eot/, loader: 'url-loader', options: { limit: 1, mimetype: 'vnd.ms-fontobject' } }
-      , {test: /\.pug$/, loader: 'template-html-loader?engine=jade'}
+      {test: /\.jpg$/, loader: 'url-loader', options: { limit: 1000, mimetype: 'image/jpeg' } },
+      {test: /\.png$/, loader: 'url-loader', options: { limit: 1000, mimetype: 'image/png' } },
+      {test: /\.gif$/, loader: 'url-loader', options: { limit: 1000, mimetype: 'image/gif' } },
+      {
+        test: /\.(woff|woff2|otf|ttf|svg|eot)$/,
+        use: {
+          loader: 'url-loader',
+          options: { 
+            limit: 1,
+            name: "fonts/[name].[ext]",
+            esModule: false
+          }
+        }
+      },
+      {test: /\.pug$/, loader: 'template-html-loader?engine=jade'}
       , {test: /\.html$/, loader: 'html-loader'}
-      , {test: /mousetrap\.js$/, loader: 'exports-loader?Mousetrap'}
       , {test: /\/angular\.js$/, loader: 'exports-loader?angular'}
       , {test: /angular-cookies\.js$/, loader: 'imports-loader?angular=angular'}
       , {test: /angular-route\.js$/, loader: 'imports-loader?angular=angular'}
@@ -80,7 +102,6 @@ module.exports = {
       , {test: /angular-growl\.js$/, loader: 'imports-loader?angular=angular'}
       , {test: /angular-gettext\.js$/, loader: 'imports-loader?angular=angular'}
       , {test: /dialogs\.js$/, loader: 'script-loader'}
-      , {test: /hotkeys\.js$/, loader: 'imports-loader?Mousetrap=Mousetrap'}
       , {test: /epoch\.js$/, loader: 'imports-loader?d3=d3'}
       //, {test: /\.ts$/, loader: 'ng-annotate-loader?ngAnnotate=ng-annotate-patched!ts-loader`
       , {
@@ -95,7 +116,29 @@ module.exports = {
         },
         exclude: /node_modules/
       }
-        
+      , {
+        test: /\.ts$/,
+        use: {
+          loader: 'ts-loader'
+        },
+        exclude: /node_modules/
+      }
+      , {
+        test: /\.jsx$/,
+        use: {
+          loader: 'babel-loader',
+          options: {
+            "presets": [
+              "@babel/preset-env"
+            ],
+            "plugins": [
+              "@babel/plugin-proposal-class-properties",
+              "@babel/plugin-proposal-private-methods"
+            ]
+          }
+        },
+        exclude: /node_modules/
+      }        
     ],
     // TODO: enable when its sane
     // preLoaders: [
@@ -106,7 +149,7 @@ module.exports = {
     //  }
     // ],
     noParse: [
-      pathutil.resource('bower_components')
+      pathutil.resource('bower_modules')
     ]
   },
   plugins: [

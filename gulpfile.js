@@ -35,7 +35,7 @@ gulp.task('eslint', function() {
   return gulp.src([
       'lib/**/*.js'
     , 'res/**/*.js'
-    , '!res/bower_components/**'
+    , '!cache/bower/**'
     , '*.js'
   ])
     // eslint() attaches the lint output to the "eslint" property
@@ -208,7 +208,7 @@ gulp.task('webpack:others', function(callback) {
 gulp.task('pug', function() {
   return gulp.src([
       './res/**/*.pug'
-    , '!./res/bower_components/**'
+    , '!./bower_modules/**'
     ])
     .pipe(pug({
       locals: {
@@ -226,7 +226,7 @@ gulp.task('translate:extract', gulp.series( 'pug', function(done) {
   return gulp.src([
       './tmp/html/**/*.html'
     , './res/**/*.js'
-    , '!./res/bower_components/**'
+    , '!./bower_modules/**'
     , '!./res/build/**'
     ])
     .pipe(gettext.extract('stf.pot'))
