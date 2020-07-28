@@ -8,14 +8,6 @@ var pathutil = require('./lib/util/pathutil')
 var path = require('path')
 var log = require('./lib/util/logger').createLogger('webpack:config')
 
-require("@babel/core").transform("code", {
-  "presets": [
-    "@babel/preset-env"
-  ],
-  "plugins": [
-    "@babel/plugin-proposal-class-properties"
-  ]
-});
 require("@babel/register");
 
 module.exports = {
@@ -42,8 +34,9 @@ module.exports = {
     modules: [
       "node_modules", 
       //path.resolve(__dirname, "bower_modules"),  // works
-      '/tmp/build/bower_modules',
       path.join(__dirname, "res/web_modules" ), // works
+      '/tmp/build/bower_modules',
+      
       //'/tmp/build/res/web_modules',
       path.resolve(__dirname, "res/app/components" )// works
       //'/tmp/build/res/app/components'
