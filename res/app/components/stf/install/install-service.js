@@ -92,7 +92,12 @@ module.exports = function InstallService(
     $rootScope.$broadcast('installation', installation)
     return StorageService.storeFile('apk', $files, {
         filter: function(file) {
-          return /\.apk$/i.test(file.name)
+          if(file.name.indexOf('.apk')!=-1){
+            return /\.apk$/i.test(file.name)
+          }
+          else {
+            return /\.ipa$/i.test(file.name)
+          }
         }
       })
       .progressed(function(e) {

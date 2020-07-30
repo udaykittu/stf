@@ -12,10 +12,12 @@ module.exports = function ControlServiceFactory(
 
   function ControlService(target, channel) {
     function sendOneWay(action, data) {
+      console.log("sentOneWay",action,data);
       socket.emit(action, channel, data)
     }
 
     function sendTwoWay(action, data) {
+      console.log("sentTwoWay",action,data);
       var tx = TransactionService.create(target)
       socket.emit(action, channel, tx.channel, data)
       return tx.promise

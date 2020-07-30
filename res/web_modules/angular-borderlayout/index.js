@@ -1,5 +1,5 @@
-require('angular-borderlayout2/dist/borderLayout.js')
-require('angular-borderlayout2/dist/borderLayout.css')
+require('angular-borderlayout/dist/borderLayout.js')
+require('angular-borderlayout/dist/borderLayout.css')
 require('./style.css')
 
 module.exports = {

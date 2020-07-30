@@ -79,7 +79,7 @@ FROM nodebase as runtime
 EXPOSE 3000
 
 # Setup user
-RUN mkdir -p /app && chown stf:stf /app
+RUN mkdir -p /app/res && chown stf:stf /app && chown stf:stf /app/res
 
 WORKDIR /app
 
@@ -99,6 +99,8 @@ COPY --from=app --chown=stf:stf /app /app
 # Copy in the frontend
 COPY --from=frontend --chown=stf:stf /tmp/build/res/build /app/res/build
  
+COPY ./webpackserver.config.js /app/
+
 #USER root
 #RUN apt-get -y --no-install-recommends install ncdu
 

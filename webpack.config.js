@@ -20,8 +20,8 @@ module.exports = {
     authmock: pathutil.resource('auth/mock/scripts/entry.js')
   },
   output: {
-    //path: pathutil.resource('build'),
-    path: '/tmp/build/res/build',
+    path: pathutil.resource('build'),
+    //path: '/tmp/build/res/build',
     publicPath: '/static/app/build/',
     filename: 'entry/[name].entry.js',
     chunkFilename: '[id].[hash].chunk.js'
