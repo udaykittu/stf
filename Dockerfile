@@ -46,7 +46,6 @@ RUN mkdir bower_modules && \
 COPY ./bower.json /tmp/build/
 COPY ./gulpfile.js /tmp/build/
 COPY ./webpack.config.js /tmp/build/
-COPY ./.babelrc.json /tmp/build/
 COPY ./res /tmp/build/res
 COPY ./lib/util /tmp/build/lib/util
 
