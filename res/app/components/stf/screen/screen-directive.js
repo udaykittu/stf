@@ -573,6 +573,11 @@ module.exports = function DeviceScreenDirective(
           }
         }
 
+        function mouseWheelListener(event) {
+          event.preventDefault();
+          control.wheel( event.deltaY );
+        }
+        
         function mouseDownListener(event) {
           var e = event
           if (e.originalEvent) {
@@ -928,6 +933,7 @@ module.exports = function DeviceScreenDirective(
         element.on('touchstart', touchStartListener)
         element.on('mousedown', mouseDownListener)
         element.on('mouseup', mouseUpBugWorkaroundListener)
+        element.on('wheel', mouseWheelListener)
 
         createSlots()
       })()
