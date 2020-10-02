@@ -3,7 +3,7 @@ FROM ubuntu:18.04 AS nodebase
 # Install base packages
 RUN export DEBIAN_FRONTEND=noninteractive && \
     apt-get update && \
-    apt-get -y --no-install-recommends install curl wget libxml-bare-perl libzmq3-dev libprotobuf-dev graphicsmagick ca-certificates
+    apt-get -y --no-install-recommends install curl wget libxml-bare-perl libzmq3-dev libprotobuf-dev graphicsmagick ca-certificates openjdk-8-jdk
 
 # Install node
 RUN export DEBIAN_FRONTEND=noninteractive && \
@@ -30,6 +30,10 @@ RUN set -x && \
     export PATH=$PWD/node_modules/.bin:$PATH && \
     npm install --loglevel http && \
     curl -sf https://gobinaries.com/tj/node-prune | sh
+
+wget --progress=dot:mega \
+	https://github.com/google/bundletool/releases/download/1.2.0/bundletool-all-1.2.0.jar \
+	-O /tmp/bundletool.jar
 
 # ********* FRONTEND **********
     
@@ -78,7 +82,7 @@ FROM nodebase as runtime
 EXPOSE 3000
 
 # Setup user
-RUN mkdir -p /app/res && chown stf:stf /app && chown stf:stf /app/res
+RUN mkdir -p /app/res && mkdir -p /app/bundletool && chown stf:stf /app && chown stf:stf /app/*
 
 WORKDIR /app
 
@@ -97,7 +101,10 @@ COPY --from=app --chown=stf:stf /app /app
 
 # Copy in the frontend
 COPY --from=frontend --chown=stf:stf /tmp/build/res/build /app/res/build
- 
+
+# Copy in bundletool
+COPY --from=with_packages --chown=stf:stf /tmp/bundletool.jar /app/bundletool/bundletool.jar
+
 COPY ./webpackserver.config.js /app/
 
 #USER root
